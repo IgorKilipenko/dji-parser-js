@@ -11,16 +11,75 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
+import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import FormControl from '@material-ui/core/FormControl';
+import ListItemText from '@material-ui/core/ListItemText';
+import Select from '@material-ui/core/Select';
+import Checkbox from '@material-ui/core/Checkbox';
+import Chip from '@material-ui/core/Chip';
 
 const { dialog } = require('electron').remote;
 
-const styles = theme => ({});
-const types = ['OSD'];
+const styles = theme => ({
+    root: {
+        display: 'flex',
+        flexWrap: 'wrap'
+    },
+    formControl: {
+        margin: theme.spacing.unit,
+        minWidth: 120,
+        maxWidth: 300
+    },
+    chips: {
+        display: 'flex',
+        flexWrap: 'wrap'
+    },
+    chip: {
+        margin: theme.spacing.unit / 4
+    }
+});
+const types = [
+    "OSD",
+    "HOME",
+    "GIMBAL",
+    "RC",
+    "CUSTOM",
+    "DEFORM",
+    "CENTER_BATTERY",
+    "SMART_BATTERY",
+    "APP_TIP",
+    "APP_WARN",
+    "RC_GPS",
+    "RC_DEBUG",
+    "RECOVER",
+    "APP_GPS",
+    "FIRMWARE",
+    "OFDM_DEBUG",
+    "VISION_GROUP",
+    "VISION_WARN",
+    "MC_PARAM",
+    "APP_OPERATION",
+    "END",
+    "OTHER"
+];
+
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+    PaperProps: {
+        style: {
+            maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+            width: 250
+        }
+    }
+};
 
 class Root extends React.Component {
     constructor() {
         super();
-        this.state = { fileName: null, data: [] };
+        this.state = { fileName: null, data: [], parsingErrors: [], sectionName: [] };
     }
 
     componentWillMount = () => {};
@@ -52,61 +111,101 @@ class Root extends React.Component {
     };
 
     parse = async () => {
+        if (this.state.sectionName.length === 0){
+            return null;
+        }
         const parser = new DJIParser();
         let bufferData = [];
-        types.forEach(type => {
+        this.state.sectionName.forEach(type => {
             parser.on(type, content => {
                 const buff = [];
-                type === 'OSD' ? buff.push({ type, content: this.osdToJson(content) }) : buff.push({ type, content });
+                buff.push({ type, content: this.osdParse(content) });
                 bufferData = [...bufferData, ...buff];
             });
         });
-        logger.debugTrace('--> Start parsing', this);
+        //logger.debugTrace('--> Start parsing', this);
         const data = await this.readFile();
         parser.parse(data);
         this.setState(prevState => {
-            return { data: bufferData.slice(0, 20) };
+            return { data: bufferData.slice(0, 2000) };
         });
     };
 
-    osdToJson = obj => {
+    osdParse = obj => {
         const o = obj;
-        const p = [];
+        const res = [];
         for (; obj != null; obj = Object.getPrototypeOf(obj)) {
             const op = Object.getOwnPropertyNames(obj);
-            logger.debugTrace({ op });
             for (var i = 0; i < op.length; i++)
-                if (p.indexOf(op[i]) == -1) {
+                if (res.indexOf(op[i]) == -1) {
                     const name = op[i];
-                    logger.debugTrace({ name });
+                    if (name === 'valueOf') {
+                        continue;
+                    }
+                    const func = obj[op[i]];
                     try {
-                        p.push(`${op[i]}\t${typeof obj[op[i]] === 'function' && obj[op[i]].apply(o)}`);
+                        //p.push(`${op[i]}\t${typeof obj[op[i]] === 'function' && obj[op[i]].apply(o)}`);
+                        if (typeof func === 'function' && func.length === 0) {
+                            let value = func.apply(o) || '';
+                            value = JSON.stringify(value);
+                            res.push({ name, value });
+                        }
                     } catch (err) {
                         logger.error(err, this);
                     }
                 }
         }
-        const ddd = p.reduce((res, curr) => {
-            res += curr + '\n';
-            return res;
-        }, '');
 
-        logger.debugTrace({ '11111': ddd });
-        return ddd;
+        return res;
     };
-
+    handleSelectedChange = event => {
+        this.setState({ sectionName: event.target.value });
+    };
     render = () => {
+        const { classes, theme } = this.props;
         return (
             <div>
+                <div>
+                    <FormControl className={classes.formControl}>
+                        <InputLabel htmlFor="select-multiple-chip">Chip</InputLabel>
+                        <Select
+                            multiple
+                            value={this.state.sectionName}
+                            onChange={this.handleSelectedChange}
+                            input={<Input id="select-multiple-chip" />}
+                            renderValue={selected => {
+                                return (
+                                    <div className={classes.chips}>
+                                        {selected.map(value => (
+                                            <Chip key={value} label={value} className={classes.chip} />
+                                        ))}
+                                    </div>
+                                );
+                            }}
+                            MenuProps={MenuProps}
+                        >
+                            {types.map(type => (
+                                <MenuItem
+                                    key={type}
+                                    value={type}
+                                    style={{
+                                        fontWeight:
+                                            this.state.sectionName.indexOf(type) === -1 ? theme.typography.fontWeightRegular : theme.typography.fontWeightMedium
+                                    }}
+                                >
+                                    {type}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                </div>
                 <Button onClick={this.onFileOpen}>Открыть лог</Button>
                 {this.state.fileName && (
                     <div>
                         <div>{this.state.fileName}</div>
                         <Button
                             onClick={() => {
-                                setImmediate(() => {
-                                    this.parse();
-                                });
+                                this.parse();
                             }}
                         >
                             Обработать данные
@@ -125,7 +224,24 @@ class Root extends React.Component {
                                         {this.state.data.map((data, key) => (
                                             <TableRow key={key}>
                                                 <TableCell>{data.type}</TableCell>
-                                                <TableCell>{data.content}</TableCell>
+                                                <TableCell>
+                                                    <Table>
+                                                        <TableHead>
+                                                            <TableRow>
+                                                                <TableCell>Name</TableCell>
+                                                                <TableCell>Value</TableCell>
+                                                            </TableRow>
+                                                        </TableHead>
+                                                        <TableBody>
+                                                            {data.content.map((item, i) => (
+                                                                <TableRow key={i + key}>
+                                                                    <TableCell>{item.name}</TableCell>
+                                                                    <TableCell>{item.value && item.value}</TableCell>
+                                                                </TableRow>
+                                                            ))}
+                                                        </TableBody>
+                                                    </Table>
+                                                </TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
@@ -134,22 +250,9 @@ class Root extends React.Component {
                         </div>
                     </div>
                 )}
-                {/*do {
-                    if (this.state.fileName) {
-                        <div>
-                            <div>{this.state.fileName}</div>
-                            <Button onClick={this.readFile}>Обработать данные</Button>
-                        </div>
-                    }
-                    if (this.state.srcData){
-                        <div>
-                            {this.state.srcData}
-                        </div>
-                    }
-                }*/}
             </div>
         );
     };
 }
 
-export default withStyles(styles)(Root);
+export default withStyles(styles, { withTheme: true })(Root);
