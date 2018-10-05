@@ -17,6 +17,7 @@ import Select from '@material-ui/core/Select';
 import Checkbox from '@material-ui/core/Checkbox';
 import Chip from '@material-ui/core/Chip';
 
+import piexif from 'piexifjs';
 import logger from '../../common/logger';
 import { remote } from 'electron';
 const { dialog, BrowserWindow } = remote;
@@ -41,10 +42,42 @@ class ImagesExif extends React.Component {
                 properties: ['openFile', 'multiSelections']
             },
             filename => {
-                filename && filename.length > 0 ? this.setState({ fileName: filename }) : this.setState({ fileName: null });
+                filename && filename.length > 0 ? this.setState({ files: filename }) : this.setState({ fileName: null });
+                this.editExif();
             }
         );
     }
+
+    editExif = () => {
+        const {files} = this.state;
+        if (!files){
+            return;
+        }
+
+        for (const file of files){
+            fs.readFile(file, 'base64', (err, data) => {
+                if (err){
+                    logger.error(err, file, this)
+                    return null;
+                }else{
+                    const prefix = 'data:image/jpeg;base64,';
+                    const imgBs64 = prefix + data.toString('base64');
+                    const exifObj = piexif.load(imgBs64);
+                    //logger.debugTrace('--> Exif', exifObj, this);
+                    let altitude = exifObj.GPS[piexif.GPSIFD.GPSAltitude][0].toString();
+                    altitude= altitude.substring(altitude.length-3, altitude.length);
+                    exifObj.GPS[piexif.GPSIFD.GPSAltitude][0] = parseInt(altitude);
+                    const exifbytes = piexif.dump(exifObj)
+                    const bs64Exif = piexif.insert(exifbytes, imgBs64).substring(prefix.length)
+                    fs.writeFile(file, bs64Exif, 'base64', err => {
+                        err && logger.error(err, this);
+                    })
+                    //logger.debugTrace('--> GPSAltitude ' + altitude, {altitude}, this);
+                }
+            })
+        }
+    }
+
     render = props => {
         return <Button onClick={this.onFileOpen}>Открыть</Button>;
     };
