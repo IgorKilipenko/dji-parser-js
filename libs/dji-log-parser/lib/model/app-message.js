@@ -12,5 +12,10 @@ AppMessage.prototype = Object.create(DJIBuffer.prototype);
 AppMessage.prototype.getMessage = function() {
   return this.readString(0, this.length);
 }
+AppMessage.prototype.getAllData = function() {
+  return {
+    message: this.getMessage()
+  }
+}
 
 module.exports = AppMessage;

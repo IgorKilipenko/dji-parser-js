@@ -21,4 +21,10 @@ Custom.prototype.getDateTime = function() {
     return new Date(parseInt(this.readLong(10, 8).toString())).toISOString();
 };
 
+Custom.prototype.getAllData = function() {
+    return {
+        distance: this.getDistance()
+    }
+}
+
 module.exports = Custom;

@@ -51,4 +51,10 @@ DJIBuffer.prototype.length = function() {
   return this.buffer.length;
 }
 
+DJIBuffer.prototype.getAllData = function() {
+  return {
+      data: 'Some data'
+  }
+}
+
 module.exports = DJIBuffer;

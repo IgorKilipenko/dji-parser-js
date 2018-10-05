@@ -85,7 +85,7 @@ DJIParser.prototype.parse = function(buffer) {
   if (detailsOffset > 0) {
     this.emit('DETAILS', new Details(buffer, detailsOffset));
   }
-
+  return offset;
 }
 
 DJIParser.prototype.isFrame = function(buffer, offset) {
@@ -167,7 +167,7 @@ DJIParser.prototype.extractFrame = function(buffer, offset, isEncrypted) {
   }
 
   if (data !== null) {
-    this.emit(type, data);
+    this.emit(type, data, dataOffset);
     this.lastMessages[type] = data;
   }
 

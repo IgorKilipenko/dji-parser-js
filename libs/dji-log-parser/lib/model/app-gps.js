@@ -20,4 +20,12 @@ AppGPS.prototype.getAccuracy = function() {
   return this.readFloat(16, 4);
 }
 
+AppGPS.prototype.getAllData = function() {
+  return {
+    longitude: this.getLongitude(),
+    latitude: this.getLatitude(),
+    accuracy: this.getAccuracy(),
+  }
+}
+
 module.exports = AppGPS;

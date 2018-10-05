@@ -84,4 +84,10 @@ CenterBattery.prototype.lastStudyCycle = function() {
   return this.readInt(37, 2);
 }
 
+CenterBattery.prototype.getAllData = function() {
+  return {
+    relativeCapacity: this.getRelativeCapacity()
+  }
+}
+
 module.exports = CenterBattery;
