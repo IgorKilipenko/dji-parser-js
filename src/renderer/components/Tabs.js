@@ -7,7 +7,7 @@ import Tab from '@material-ui/core/Tab';
 import Typography from '@material-ui/core/Typography';
 
 import LogParser from './LogParser';
-import ImagesExif from './Images';
+import MetadatEditor from './MetadatEditor';
 
 function TabContainer(props) {
     return (
@@ -62,7 +62,7 @@ class MainTab extends React.Component {
                 )}
                 {value === 1 && (
                     <TabContainer>
-                        <ImagesExif/>
+                        <MetadatEditor/>
                     </TabContainer>
                 )}
                 {value === 2 && <TabContainer>Item Three</TabContainer>}
