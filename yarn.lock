@@ -1272,6 +1272,10 @@ base@^0.11.1:
     mixin-deep "^1.2.0"
     pascalcase "^0.1.1"
 
+batch-cluster@^4.3.0:
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/batch-cluster/-/batch-cluster-4.3.0.tgz#067c4df0c26aac87c685678888aef858493c6cf5"
+
 batch@0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/batch/-/batch-0.6.1.tgz#dc34314f4e679318093fc760272525f94bf25c16"
@@ -2892,6 +2896,23 @@ execa@^0.7.0:
     p-finally "^1.0.0"
     signal-exit "^3.0.0"
     strip-eof "^1.0.0"
+
+exiftool-vendored.exe@11.10.0:
+  version "11.10.0"
+  resolved "https://registry.yarnpkg.com/exiftool-vendored.exe/-/exiftool-vendored.exe-11.10.0.tgz#1fafb6722282b9a05bfd053ea7d4fd9b740f52be"
+
+exiftool-vendored.pl@11.10.0:
+  version "11.10.0"
+  resolved "https://registry.yarnpkg.com/exiftool-vendored.pl/-/exiftool-vendored.pl-11.10.0.tgz#5058eaaee2501fd0ec9302ef0e45721664e26e96"
+
+exiftool-vendored@^6.2.3:
+  version "6.2.3"
+  resolved "https://registry.yarnpkg.com/exiftool-vendored/-/exiftool-vendored-6.2.3.tgz#718f36279ae618a12ffb7a415f7c79402b54e7de"
+  dependencies:
+    batch-cluster "^4.3.0"
+  optionalDependencies:
+    exiftool-vendored.exe "11.10.0"
+    exiftool-vendored.pl "11.10.0"
 
 expand-brackets@^2.1.4:
   version "2.1.4"

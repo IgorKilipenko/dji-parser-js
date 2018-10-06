@@ -23,6 +23,7 @@ var DRONE_TYPE = {
   18: "Pomato",
   20: "N3",
   23: "PM820PRO",
+  41: "Mavic 2 Zoom",
   100: "None",
   255: "NoFlyc",
 };

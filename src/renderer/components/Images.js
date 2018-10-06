@@ -18,6 +18,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 import Chip from '@material-ui/core/Chip';
 
 import piexif from 'piexifjs';
+const exiftool = require('exiftool-vendored').exiftool;
 import logger from '../../common/logger';
 import { remote } from 'electron';
 const { dialog, BrowserWindow } = remote;
@@ -38,7 +39,7 @@ class ImagesExif extends React.Component {
             win,
             {
                 title: 'Select image files',
-                filters: [{ name: 'JPEG images', extensions: ['JPG', 'JPEG'] }],
+                filters: [{ name: 'JPEG images', extensions: ['JPG', 'JPEG', 'DNG'] }],
                 properties: ['openFile', 'multiSelections']
             },
             filename => {
@@ -46,37 +47,63 @@ class ImagesExif extends React.Component {
                 this.editExif();
             }
         );
-    }
+    };
 
     editExif = () => {
-        const {files} = this.state;
-        if (!files){
+        const { files } = this.state;
+        if (!files) {
             return;
         }
 
-        for (const file of files){
-            fs.readFile(file, 'base64', (err, data) => {
-                if (err){
-                    logger.error(err, file, this)
-                    return null;
-                }else{
-                    const prefix = 'data:image/jpeg;base64,';
-                    const imgBs64 = prefix + data.toString('base64');
-                    const exifObj = piexif.load(imgBs64);
-                    //logger.debugTrace('--> Exif', exifObj, this);
-                    let altitude = exifObj.GPS[piexif.GPSIFD.GPSAltitude][0].toString();
-                    altitude= altitude.substring(altitude.length-3, altitude.length);
-                    exifObj.GPS[piexif.GPSIFD.GPSAltitude][0] = parseInt(altitude);
-                    const exifbytes = piexif.dump(exifObj)
-                    const bs64Exif = piexif.insert(exifbytes, imgBs64).substring(prefix.length)
-                    fs.writeFile(file, bs64Exif, 'base64', err => {
-                        err && logger.error(err, this);
-                    })
-                    //logger.debugTrace('--> GPSAltitude ' + altitude, {altitude}, this);
-                }
-            })
+        for (const file of files) {
+            this.loadXmp(file);
+
+            //fs.readFile(file, 'base64', (err, data) => {
+            //    if (err) {
+            //        logger.error(err, file, this);
+            //        return null;
+            //    } else {
+            //        
+            //        const prefix = 'data:image/jpeg;base64,';
+            //        const imgBs64 = prefix + data.toString('base64');
+            //        const exifObj = piexif.load(imgBs64);
+            //        logger.debugTrace('--> Exif', exifObj, this);
+            //        let altitude = exifObj.GPS[piexif.GPSIFD.GPSAltitude][0].toString();
+            //        altitude = altitude.substring(altitude.length - 3, altitude.length);
+            //        exifObj.GPS[piexif.GPSIFD.GPSAltitude][0] = parseInt(altitude);
+            //        exifObj.GPS[piexif.GPSIFD.GPSAltitudeRef] = 0;
+            //        const exifbytes = piexif.dump(exifObj);
+            //        const bs64Exif = piexif.insert(exifbytes, imgBs64).substring(prefix.length);
+            //        fs.writeFile(file, bs64Exif, 'base64', err => {
+            //            err && logger.error(err, this);
+            //        });
+            //        //logger.debugTrace('--> GPSAltitude ' + altitude, {altitude}, this);
+            //    }
+            //});
         }
-    }
+    };
+
+    loadXmp = async file => {
+        let tags = null;
+        try {
+            tags = await exiftool.read(file);
+            const gpsXmp = {
+                GPSLatitude: tags.Latitude.replace(/^[+-]/, ''),
+                GPSLongitude: tags.Longitude.replace(/^[+-]/, ''),
+                GPSAltitude: `${tags.RelativeAltitude.replace(/^[+-]/, '')} m Above Sea Level`,
+                GPSAltitudeRef: 'Above Sea Level'
+            }
+            logger.debugTrace('--> Tags : ', gpsXmp, tags, this)
+            try{
+                await exiftool.write(file, gpsXmp);
+                logger.debugTrace('--> Success exif data : ', gpsXmp, this)
+            }catch(err){
+                logger.error(err, gpsXmp, this)
+            }
+        } catch (err) {
+            logger.error(err, file, this);
+        }
+    };
 
     render = props => {
         return <Button onClick={this.onFileOpen}>Открыть</Button>;

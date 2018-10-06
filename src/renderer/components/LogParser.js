@@ -149,7 +149,7 @@ class Root extends React.Component {
                 parser.on(type, async (customData, offset) => {
                     let res = await customData.getAllData();
                     res = Object.entries(res);
-                    //logger.debugTrace(`--> Result`, res, this)
+                    logger.debugTrace(`--> Result`, res, this);
                     const lines = new Array(res.length);
                     try {
                         let i = 0;
@@ -191,7 +191,7 @@ class Root extends React.Component {
         const data = await this.readFile();
         parser.parse(data);
         this.setState(prevState => {
-            return { data: bufferData.slice(0, 2000) };
+            return { data: bufferData };
         });
     };
 
