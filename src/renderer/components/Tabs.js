@@ -8,6 +8,7 @@ import Typography from '@material-ui/core/Typography';
 
 import LogParser from './LogParser';
 import MetadatEditor from './MetadatEditor';
+import MqttBroker from './MqttBroker';
 
 function TabContainer(props) {
     return (
@@ -48,7 +49,7 @@ class MainTab extends React.Component {
                     <Tabs value={value} onChange={this.handleChange} indicatorColor="primary" textColor="primary" scrollable scrollButtons="auto">
                         <Tab label="Парсер" />
                         <Tab label="Картинки" />
-                        <Tab label="Item Three" />
+                        <Tab label="MQTT" />
                         <Tab label="Item Four" />
                         <Tab label="Item Five" />
                         <Tab label="Item Six" />
@@ -65,7 +66,7 @@ class MainTab extends React.Component {
                         <MetadatEditor/>
                     </TabContainer>
                 )}
-                {value === 2 && <TabContainer>Item Three</TabContainer>}
+                {value === 2 && <TabContainer><MqttBroker/></TabContainer>}
                 {value === 3 && <TabContainer>Item Four</TabContainer>}
                 {value === 4 && <TabContainer>Item Five</TabContainer>}
                 {value === 5 && <TabContainer>Item Six</TabContainer>}

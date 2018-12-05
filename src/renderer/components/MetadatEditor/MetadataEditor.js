@@ -106,7 +106,7 @@ class MetadataEditor extends React.Component {
     render = props => {
         return (
             <div>
-                <Button onClick={this.onFileOpen}>Открыть</Button>)
+                <Button onClick={this.onFileOpen}>Открыть</Button>
                 <ImageGride></ImageGride>
             </div>
         )
