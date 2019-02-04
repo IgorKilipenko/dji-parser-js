@@ -1,3 +1,5 @@
+import http from 'http';
+
 import React from 'react';
 import PropTypes from 'prop-types';
 
@@ -44,9 +46,39 @@ class MetadataEditor extends React.Component {
             },
             filename => {
                 filename && filename.length > 0 && this.setState({ imgSet: [] });
-                this.loadXmp()
+                this.loadXmp();
             }
         );
+    };
+
+    onTestNtrip = async () => {
+        const options = {
+            method: 'GET',
+            port: 2102,
+            host: '82.202.202.138',
+            path: '/KOCH',
+            auth: 'sbr5037:940172',
+            headers: {
+                'Ntrip-Version': 'Ntrip/2.0',
+                'User-Agent': 'NTRIP ExampleClient/2.0',
+                Connection: 'close',
+                Authorization: 'Basic c2JyNTAzNzo5NDAxNzI='
+            }
+        };
+
+        const file = 'data.txt';
+        const fs = require('fs');
+        const writable = fs.createWriteStream('file.txt', { encoding: 'ascii' });
+
+        const req = http.request(options, res => {
+            console.log('ntrip');
+            //res.setEncoding('ascii');
+            res.on('data', data => {
+                //console.log(data.toString('utf8'));
+                writable.write(data);
+            });
+        });
+        req.end();
     };
 
     loadXmp = async file => {
@@ -54,7 +86,7 @@ class MetadataEditor extends React.Component {
         try {
             tags = await exiftool.read(file, '-b');
             let imgPreview = null;
-            if (tags){
+            if (tags) {
                 this.setState(prebState => {
                     const exifXmpTags = {
                         Latitude: tags.Latitude,
@@ -66,12 +98,11 @@ class MetadataEditor extends React.Component {
                         GPSAltitudeRef: tags.GPSAltitudeRef,
                         ImageReview: tags.ImageReview
                     };
-                    const buff = [...prebState.imgSet, {file, exifXmpTags}];
+                    const buff = [...prebState.imgSet, { file, exifXmpTags }];
                 });
-
             }
         } catch (err) {
-            logger.error(err)
+            logger.error(err);
         }
     };
 
@@ -107,9 +138,10 @@ class MetadataEditor extends React.Component {
         return (
             <div>
                 <Button onClick={this.onFileOpen}>Открыть</Button>
-                <ImageGride></ImageGride>
+                <Button onClick={this.onTestNtrip}>Test NTRIP</Button>
+                <ImageGride />
             </div>
-        )
+        );
     };
 }
 

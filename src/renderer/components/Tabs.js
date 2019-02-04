@@ -9,6 +9,7 @@ import Typography from '@material-ui/core/Typography';
 import LogParser from './LogParser';
 import MetadatEditor from './MetadatEditor';
 import MqttBroker from './MqttBroker';
+import Ntrip from './Ntrip';
 
 function TabContainer(props) {
     return (
@@ -50,7 +51,7 @@ class MainTab extends React.Component {
                         <Tab label="Парсер" />
                         <Tab label="Картинки" />
                         <Tab label="MQTT" />
-                        <Tab label="Item Four" />
+                        <Tab label="NTRIP" />
                         <Tab label="Item Five" />
                         <Tab label="Item Six" />
                         <Tab label="Item Seven" />
@@ -67,7 +68,7 @@ class MainTab extends React.Component {
                     </TabContainer>
                 )}
                 {value === 2 && <TabContainer><MqttBroker/></TabContainer>}
-                {value === 3 && <TabContainer>Item Four</TabContainer>}
+                {value === 3 && <TabContainer><Ntrip/></TabContainer>}
                 {value === 4 && <TabContainer>Item Five</TabContainer>}
                 {value === 5 && <TabContainer>Item Six</TabContainer>}
                 {value === 6 && <TabContainer>Item Seven</TabContainer>}
