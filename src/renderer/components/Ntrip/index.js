@@ -6,6 +6,7 @@ import { remote } from 'electron';
 const fs = remote.require('fs');
 const path = remote.require('path');
 const http = remote.require('http');
+//import http from 'http';
 
 import { withStyles } from '@material-ui/core/styles';
 import { Button } from '@material-ui/core';
@@ -23,21 +24,52 @@ const styles = theme => ({
 });
 
 class Ntrip extends React.Component {
-    clientOptions = {
-        port: 2102,
-        host: '82.202.202.138',
-        mountpoint: 'KOCH',
-        user: 'sbr5037',
-        password: '940172'
-    };
-    serverOptions = {};
-    client = null;
+    constructor(){
+        super();
 
-    state = {
-        clientConnected: false
-    };
+        let now = new Date();
+        let date = ('00' + now.getUTCHours()).slice(-2) + ('00' + now.getUTCMinutes()).slice(-2) + ('00' + now.getUTCSeconds()).slice(-2) + '.' + ('00' + now.getUTCMilliseconds()).slice(-2);
+
+
+        this.state = {
+            clientConnected: false,
+            ntripData: '',
+            serverStarted: false
+        };
+        this.serverOptions = {};
+        this.client = null;
+        this.clientOptions = {
+            port: 2102,
+            host: '82.202.202.138',
+            mountpoint: 'KOCH',
+            user: 'sbr5037',
+            password: '940172'
+        };
+        this.topconOptions = {
+            host: '82.202.176.56',
+            port: 2101,
+            user: '57262503',
+            password: 'eav4kACe',
+            mountpoint: 'AutoRTCM3',
+            GPGGA: `GPGGA,${date},5455.598491,N,08255.505364,E,1,10,1.0,120.90,M,-16.271,M,,`
+        }
+        
+        /* Временно checksum !! ========================================================*/
+        let checksum = 0; 
+        for(var i = 0; i < this.topconOptions.GPGGA.length; i++) { 
+            checksum = checksum ^ this.topconOptions.GPGGA.charCodeAt(i);
+        }
+        this.topconOptions.GPGGA = `$${this.topconOptions.GPGGA}*${checksum.toString(16).toUpperCase()}`;
+        console.log({GPGGA:this.topconOptions.GPGGA});
+        /* ============================================================================ */
+
+
+        this.server;
+    }
+
+
     startNtrip = async () => {
-        const options = {
+        /*const options = {
             method: 'GET',
             port: 2102,
             host: '82.202.202.138',
@@ -52,7 +84,9 @@ class Ntrip extends React.Component {
                 Connection: 'close',
                 Authorization: 'Basic c2JyNTAzNzo5NDAxNzI='
             }
-        };
+        };*/
+
+
 
         const file = 'data.txt';
         const fs = require('fs');
@@ -62,11 +96,12 @@ class Ntrip extends React.Component {
             await this.client.abort();
             this.client.removeAllListeners();
         }
-        this.client = new NtripClient(options);
-        this.client.on('request', info => {
-            console.log({ info });
+        this.client = new NtripClient(this.topconOptions);
+        this.client.on('response', (info, res) => {
+            console.log({ info, res });
+            this.srcNtripResponse = res;
             this.setState({
-                clientConnected: true,
+                clientConnected: this.client.isConnected,
                 clientStatusCode: info.statusCode,
                 clientHeaders: info.headers
             });
@@ -74,7 +109,7 @@ class Ntrip extends React.Component {
 
         this.client.on('data', chank => {
             this.setState({
-                data: chank
+                ntripData: chank.toString('ascii')
             });
         });
 
@@ -89,17 +124,43 @@ class Ntrip extends React.Component {
         this.client.request();
     };
 
-    startServer = () => {
-        const server = http.createServer(async (req, res) => {
-            res.writeHead(200, { 'Content-Type': 'text/plain' });
-            res.end('okay');
-            if (this.client) {
-                this.client.abort();
-                this.client = null;
+    stopServer = () => {
+        return new Promise((reslove, reject)=>{
+            if (this.server && this.server.listening){
+                this.server.close((...v) => {
+                    console.log("Server closing", this.server, v);
+                    this.server && this.server.unref();
+                    this.server = null;
+                    this.setState({serverStarted: this.server && this.server.listening});
+                    reslove(true);
+                });
+                
+            }else{
+                this.server = null;
+                reslove(false);
             }
-            this.client = new NtripClient(this.clientOptions);
-            const { headers, statusCode } = await this.client.getInfo();
+
+        })
+
+    }
+    startServer = async () => {
+        await this.stopServer();
+        console.assert(this.client && this.client.isConnected, "Client not connected", {client:this.client});
+        this.server = http.createServer(async (req, res) => {
+            res.write("ICY 200 OK\r\n");
+            res.write(this.srcNtripResponse.rawHeaders.join('\r\n') + '\r\n');
+            this.srcNtripResponse.pipe(res);
         });
+        this.server.on('error', async err => {
+            console.error(err, this.server);
+            this.setState({serverStarted: this.server && this.server.listening});
+        })
+        this.server.listen(7043, () => {
+            const {address, port} = this.server.address();
+            console.log(`Start listen on ${address}:${port}`);
+            this.setState({serverStarted:true})
+        });
+
     };
 
     render = () => {
@@ -107,11 +168,15 @@ class Ntrip extends React.Component {
         return (
             <div>
                 <div>
-                    <Button disabled={(this.client && this.client.isConnected) || false} onClick={() => this.startNtrip()}>
-                        Start
+                    <Button disabled={this.state.clientConnected } onClick={() => this.startNtrip()}>
+                        {this.state.clientConnected ? this.state.clientStatusCode: 'Start'}
                     </Button>
-                    <Button onClick={async () => this.client && (await this.client.abort())}>Stop</Button>
-                    <Button onClick={() => this.startServer()}>Start server</Button>
+                    <Button disabled={!this.state.clientConnected } onClick={async () => this.client && (await this.client.abort())}>
+                        Stop
+                    </Button>
+                    <Button onClick={async () => !this.state.serverStarted ? this.startServer(): await this.stopServer()}>
+                        {!this.state.serverStarted ? 'Start server' : 'Stop server'}
+                    </Button>
                 </div>
                 <div className={classes.container}>
                     <TextField
@@ -119,7 +184,7 @@ class Ntrip extends React.Component {
                         label="Data"
                         multiline
                         rowsMax="8"
-                        value={this.state.data || ''}
+                        value={this.state.ntripData}
                         className={classes.textField}
                         margin="normal"
                         variant="outlined"
