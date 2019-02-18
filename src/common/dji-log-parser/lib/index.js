@@ -96,6 +96,7 @@ DJIParser.prototype.isFrame = function(buffer, offset) {
   }
   
   var end = buffer.readUint8(offset + length);
+  if (tId == 5) console.log({custlen: length});
   return tId != 0 && end == 0xFF;
 }
 

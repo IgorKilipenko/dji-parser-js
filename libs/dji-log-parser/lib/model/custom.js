@@ -9,6 +9,14 @@ function Custom(buffer, index, key) {
 
 Custom.prototype = Object.create(DJIBuffer.prototype);
 
+Custom.prototype.get1Byte = function(){
+    return this.readByte(0);
+};
+
+Custom.prototype.get2Byte = function(){
+    return this.readByte(1);
+}
+
 Custom.prototype.getDistance = function() {
     return this.readFloat(6,4);
 };
@@ -23,7 +31,9 @@ Custom.prototype.getDateTime = function() {
 
 Custom.prototype.getAllData = function() {
     return {
-        distance: this.getDistance()
+        distance: this.getDistance(),
+        get1Byte :this.get1Byte(),
+        get2Byte: this.get2Byte()
     }
 }
 

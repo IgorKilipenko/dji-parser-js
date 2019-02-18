@@ -1,5 +1,3 @@
-import http from 'http';
-
 import React from 'react';
 import PropTypes from 'prop-types';
 
@@ -35,6 +33,9 @@ const styles = theme => ({});
 class MetadataEditor extends React.Component {
     constructor() {
         super();
+        this.state = {
+            imgSet: null
+        }
     }
     onFileOpen = () => {
         dialog.showOpenDialog(
@@ -45,49 +46,21 @@ class MetadataEditor extends React.Component {
                 properties: ['openFile', 'multiSelections']
             },
             filename => {
-                filename && filename.length > 0 && this.setState({ imgSet: [] });
-                this.loadXmp();
+                filename && filename.length > 0 && this.setState({ imgSet: filename });
+                logger.debugTrace("Onen file: ",{filename}, this);
+                filename && filename.forEach(f => this.loadXmp(f)); 
             }
         );
-    };
-
-    onTestNtrip = async () => {
-        const options = {
-            method: 'GET',
-            port: 2102,
-            host: '82.202.202.138',
-            path: '/KOCH',
-            auth: 'sbr5037:940172',
-            headers: {
-                'Ntrip-Version': 'Ntrip/2.0',
-                'User-Agent': 'NTRIP ExampleClient/2.0',
-                Connection: 'close',
-                Authorization: 'Basic c2JyNTAzNzo5NDAxNzI='
-            }
-        };
-
-        const file = 'data.txt';
-        const fs = require('fs');
-        const writable = fs.createWriteStream('file.txt', { encoding: 'ascii' });
-
-        const req = http.request(options, res => {
-            console.log('ntrip');
-            //res.setEncoding('ascii');
-            res.on('data', data => {
-                //console.log(data.toString('utf8'));
-                writable.write(data);
-            });
-        });
-        req.end();
     };
 
     loadXmp = async file => {
         let tags = null;
         try {
             tags = await exiftool.read(file, '-b');
+            console.log({tags});
             let imgPreview = null;
             if (tags) {
-                this.setState(prebState => {
+                this.setState(prevState => {
                     const exifXmpTags = {
                         Latitude: tags.Latitude,
                         Longitude: tags.Longitude,
@@ -98,7 +71,12 @@ class MetadataEditor extends React.Component {
                         GPSAltitudeRef: tags.GPSAltitudeRef,
                         ImageReview: tags.ImageReview
                     };
-                    const buff = [...prebState.imgSet, { file, exifXmpTags }];
+                    //const buff = [...prevState.imgSet, { file, exifXmpTags }];
+                    return {
+                        file,
+                        exifXmpTags
+                    }
+
                 });
             }
         } catch (err) {
@@ -138,7 +116,6 @@ class MetadataEditor extends React.Component {
         return (
             <div>
                 <Button onClick={this.onFileOpen}>Открыть</Button>
-                <Button onClick={this.onTestNtrip}>Test NTRIP</Button>
                 <ImageGride />
             </div>
         );

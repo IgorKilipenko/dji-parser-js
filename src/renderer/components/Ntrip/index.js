@@ -149,7 +149,10 @@ class Ntrip extends React.Component {
         this.server = http.createServer(async (req, res) => {
             res.write("ICY 200 OK\r\n");
             res.write(this.srcNtripResponse.rawHeaders.join('\r\n') + '\r\n');
-            this.srcNtripResponse.pipe(res);
+            //this.srcNtripResponse.pipe(res);
+            this.client.on('data', chank => {
+                res.write(chank);
+            });
         });
         this.server.on('error', async err => {
             console.error(err, this.server);

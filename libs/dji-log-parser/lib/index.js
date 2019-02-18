@@ -61,8 +61,10 @@ DJIParser.prototype.parse = function(buffer) {
   var buffer = ByteBuffer.wrap(buffer, "binary", true);
   // first 3 header bytes show address, where Details section starts
   var detailsOffset = buffer.readInt(0,3);
+  console.log({detailsOffset});
   // guess if frames are encrypted
   var isEncrypted = buffer.readUint8(10) > 6;
+  console.log({isEncrypted});
   // packets start at offset 12
   var offset = 12;
 
