@@ -9,32 +9,32 @@
     "dist:dir": "yarn dist --dir -c.compression=store -c.mac.identity=null"
   },
   "dependencies": {
-    "@material-ui/core": "^3.1.2",
-    "@material-ui/icons": "^3.0.1",
+    "@material-ui/core": "^3.9.2",
+    "@material-ui/icons": "^3.0.2",
     "dji-log-parser": "^0.0.4",
-    "exiftool-vendored": "^6.2.3",
+    "exiftool-vendored": "^8.0.0",
     "mosca": "^2.8.3",
-    "react": "^16.5.2",
-    "react-dom": "^16.5.2",
-    "source-map-support": "^0.5.9"
+    "react": "^16.8.2",
+    "react-dom": "^16.8.2",
+    "source-map-support": "^0.5.10"
   },
   "devDependencies": {
-    "@babel/plugin-proposal-async-generator-functions": "^7.1.0",
-    "@babel/plugin-proposal-class-properties": "^7.1.0",
-    "@babel/plugin-proposal-do-expressions": "^7.0.0",
-    "@babel/plugin-proposal-export-default-from": "^7.0.0",
-    "@babel/plugin-proposal-object-rest-spread": "^7.0.0",
-    "@babel/plugin-proposal-optional-catch-binding": "^7.0.0",
+    "@babel/plugin-proposal-async-generator-functions": "^7.2.0",
+    "@babel/plugin-proposal-class-properties": "^7.3.3",
+    "@babel/plugin-proposal-do-expressions": "^7.2.0",
+    "@babel/plugin-proposal-export-default-from": "^7.2.0",
+    "@babel/plugin-proposal-object-rest-spread": "^7.3.2",
+    "@babel/plugin-proposal-optional-catch-binding": "^7.2.0",
     "@babel/preset-react": "^7.0.0",
-    "electron": "3.0.2",
-    "electron-builder": "^20.28.4",
-    "electron-webpack": "^2.3.1",
-    "electron-webpack-eslint": "^3.0.0",
-    "eslint-plugin-html": "^4.0.6",
-    "flow-bin": "^0.82.0",
-    "webpack": "^4.20.2"
+    "electron": "4.0.1",
+    "electron-builder": "^20.38.4",
+    "electron-webpack": "^2.6.2",
+    "electron-webpack-eslint": "^4.0.1",
+    "eslint-plugin-html": "^5.0.3",
+    "flow-bin": "^0.93.0",
+    "webpack": "^4.29.5"
   },
   "resolutions": {
-    "upath": "^1.0.5"
+    "upath": "^1.1.0"
   }
 }
