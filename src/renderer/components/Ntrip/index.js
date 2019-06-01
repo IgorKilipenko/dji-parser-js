@@ -52,6 +52,13 @@ class Ntrip extends React.Component {
             password: 'eav4kACe',
             mountpoint: 'AutoRTCM3',
             GPGGA: `GPGGA,${date},5455.598491,N,08255.505364,E,1,10,1.0,120.90,M,-16.271,M,,`
+        };
+        this.eftOptions = {
+            host: '82.202.202.138',
+            port: 2102,
+            user: 'sbr5037',
+            password: '940172',
+            mountpoint: 'NVSB3_2'
         }
         
         /* Временно checksum !! ========================================================*/
@@ -96,7 +103,7 @@ class Ntrip extends React.Component {
             await this.client.abort();
             this.client.removeAllListeners();
         }
-        this.client = new NtripClient(this.topconOptions);
+        this.client = new NtripClient(this.eftOptions);
         this.client.on('response', (info, res) => {
             console.log({ info, res });
             this.srcNtripResponse = res;
@@ -158,7 +165,7 @@ class Ntrip extends React.Component {
             console.error(err, this.server);
             this.setState({serverStarted: this.server && this.server.listening});
         })
-        this.server.listen(7043, () => {
+        this.server.listen(7048, () => {
             const {address, port} = this.server.address();
             console.log(`Start listen on ${address}:${port}`);
             this.setState({serverStarted:true})
