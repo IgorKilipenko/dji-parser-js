@@ -26,7 +26,7 @@
     "@babel/plugin-proposal-object-rest-spread": "^7.3.2",
     "@babel/plugin-proposal-optional-catch-binding": "^7.2.0",
     "@babel/preset-react": "^7.0.0",
-    "electron": "9.4.0",
+    "electron": "15.5.5",
     "electron-builder": "^20.38.4",
     "electron-webpack": "^2.6.2",
     "electron-webpack-eslint": "^4.0.1",
